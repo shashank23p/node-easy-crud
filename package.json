@@ -22,8 +22,5 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   }
 }
