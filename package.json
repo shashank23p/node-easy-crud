@@ -1,6 +1,6 @@
 {
   "name": "node-easy-crud",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "expose crud routes as api for express mongoose node app",
   "main": "index.js",
   "scripts": {
