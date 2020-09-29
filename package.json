@@ -1,0 +1,22 @@
+{
+  "name": "node-easy-crud",
+  "version": "1.0.0",
+  "description": "expose crud routes as api for express mongoose node app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node-easy-crud",
+    "crud",
+    "node",
+    "express",
+    "mongoose",
+    "mongoose-crud"
+  ],
+  "author": "Shashank Padwal",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
