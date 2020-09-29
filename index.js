@@ -1,4 +1,3 @@
-const express = require("express");
 class NodeEasyCurd {
   //crearting global Variables and route for CRUD
   constructor(model, router, config = {}) {
@@ -73,7 +72,7 @@ class NodeEasyCurd {
       // Route to update
       router.post(
         this.baseURL + "/update",
-        express.json({ type: "*/*" }),
+        this.parseBody,
         async (req, res) => {
           try {
             const fields = this.editFields ? this.editFields : this.fields;
@@ -112,7 +111,7 @@ class NodeEasyCurd {
       // Route to insert
       router.post(
         this.baseURL + "/insert",
-        express.json({ type: "*/*" }),
+        this.parseBody,
         async (req, res) => {
           try {
             const fields = this.addFields ? this.addFields : this.fields;
@@ -134,13 +133,12 @@ class NodeEasyCurd {
       // Route to delete
       router.post(
         this.baseURL + "/delete",
-        express.json({ type: "*/*" }),
+        this.parseBody,
         async (req, res) => {
           try {
             const deleted = await this.model.deleteOne({
               [this.idField]: req.body.id,
             });
-            console.log(deleted);
             res.json({
               message: "Deleted Successfully",
             });
@@ -243,6 +241,18 @@ class NodeEasyCurd {
       month = "0" + month;
     }
     return year + "-" + month + "-" + dt;
+  }
+
+  //parseing body to avoid using Dependencies
+  parseBody(req, res, next) {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk.toString(); // convert Buffer to string
+    });
+    req.on("end", () => {
+      req.body = JSON.parse(body);
+      next();
+    });
   }
 }
 
