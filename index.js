@@ -38,7 +38,10 @@ class NodeEasyCurd {
       try {
         //run before callback
         if (this.callbackBeforeRead) {
-          this.callbackBeforeRead();
+          let callBackData = this.callbackBeforeRead();
+          if (callBackData)
+            if (callBackData.errorFromCallback)
+              return res.json({ error: callBackData.errorFromCallback });
         }
         let tableData = await this.model
           .find()
