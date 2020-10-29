@@ -12,7 +12,14 @@ class NodeEasyCurd {
     this.add = config.unsetAdd ? false : true;
     this.edit = config.unsetEdit ? false : true;
     this.del = config.unsetDelete ? false : true;
-    //done setting options
+    //before call backs
+    this.callbackBeforeDelete = config.callbackBeforeDelete;
+    this.callbackBeforeUpdate = config.callbackBeforeUpdate;
+    this.callbackBeforeInsert = config.callbackBeforeInsert;
+    //after call backs
+    this.callbackAfterDelete = config.callbackAfterDelete;
+    this.callbackAfterUpdate = config.callbackAfterUpdate;
+    this.callbackAfterInsert = config.callbackAfterInsert;
 
     let populateArray = [];
 
@@ -75,19 +82,35 @@ class NodeEasyCurd {
         this.parseBody,
         async (req, res) => {
           try {
+            //run before callback
+            if (this.callbackBeforeUpdate) {
+              req.body = this.callbackBeforeUpdate(req.body);
+              if (req.body.errorFromCallback)
+                return res.json({ error: errorFromCallback });
+            }
             const fields = this.editFields ? this.editFields : this.fields;
             const validate = await this.validateUpdate(fields, req.body);
             if (!validate.valid) return res.json({ error: validate.error });
-            const updated = await this.model.updateOne(
+            const updated = await this.model.findOneAndUpdate(
               { [this.idField]: req.body[this.idField] },
               {
                 $set: req.body,
-              }
+              },
+              { new: true, useFindAndModify: false }
             );
-            if (updated.nModified == 0) {
-              res.json({ message: "Every thing is up to date" });
-            } else if (updated.nModified > 0) {
-              res.json({ message: "Updated Successfully" });
+            if (updated) {
+              res.json({
+                row: updated,
+                message: req.body.messageFromCallback
+                  ? req.body.messageFromCallback
+                  : "Updated Successfully",
+              });
+              //run after callback
+              if (this.callbackAfterUpdate) {
+                this.callbackAfterUpdate(updated);
+              }
+            } else {
+              res.json({ error: "Something went wrong, Try again" });
             }
           } catch (error) {
             res.json({ error: error.message });
@@ -101,7 +124,6 @@ class NodeEasyCurd {
         try {
           const fields = this.addFields ? this.addFields : this.fields;
           let formStrc = await this.getFromStruc(fields);
-          // await new Promise((resolve) => setTimeout(resolve, 5000));
           res.json({ formStrc: formStrc });
         } catch (error) {
           res.json({ error: error.message });
@@ -114,15 +136,27 @@ class NodeEasyCurd {
         this.parseBody,
         async (req, res) => {
           try {
+            //run before callback
+            if (this.callbackBeforeInsert) {
+              req.body = this.callbackBeforeInsert(req.body);
+              if (req.body.errorFromCallback)
+                return res.json({ error: errorFromCallback });
+            }
             const fields = this.addFields ? this.addFields : this.fields;
             const validate = await this.validateUpdate(fields, req.body);
             if (!validate.valid) return res.json({ error: validate.error });
             const row = new this.model(req.body);
             const savedRow = await row.save();
             res.json({
-              user: savedRow,
-              message: "New " + this.model.modelName + " added",
+              row: savedRow,
+              message: req.body.messageFromCallback
+                ? req.body.messageFromCallback
+                : "New " + this.model.modelName + " added",
             });
+            //run after callback
+            if (this.callbackAfterInsert) {
+              this.callbackAfterInsert(savedRow);
+            }
           } catch (error) {
             res.json({ error: error.message });
           }
@@ -136,12 +170,24 @@ class NodeEasyCurd {
         this.parseBody,
         async (req, res) => {
           try {
+            //run before callback
+            if (this.callbackBeforeDelete) {
+              req.body = this.callbackBeforeDelete(req.body);
+              if (req.body.errorFromCallback)
+                return res.json({ error: errorFromCallback });
+            }
             const deleted = await this.model.deleteOne({
               [this.idField]: req.body.id,
             });
             res.json({
-              message: "Deleted Successfully",
+              message: req.body.messageFromCallback
+                ? req.body.messageFromCallback
+                : "Deleted Successfully",
             });
+            //run after callback
+            if (this.callbackAfterDelete) {
+              this.callbackAfterDelete(deleted);
+            }
           } catch (error) {
             res.json({ error: error.message });
           }
