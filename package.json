@@ -16,7 +16,8 @@
     "node",
     "express",
     "mongoose",
-    "mongoose-crud"
+    "mongoose-crud",
+    "react-node-easy-crud"
   ],
   "author": "Shashank Padwal",
   "license": "ISC"
