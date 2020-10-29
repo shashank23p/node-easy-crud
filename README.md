@@ -91,7 +91,7 @@ const router = express.Router();
 const Subject = require("../models/Subject"); //mongoose model
 const User = require("../models/User");
 
-//to create CRUD routes for Subject model Simply use following code:
+//to create CRUD routes for User model Simply use following code:
 new CURD(Subject, router, {
   fields: ["name", "sem", "creator", "date"], // only select given fields for all CRUD oprations
   ref: { creator: { model: User, field: "name" } }, //replace value of creator field with value on given field i.e "name" from refrenced model
@@ -102,14 +102,138 @@ module.exports = router;
 
 ### Options Table
 
-| name        | default             | data type | description                                                                                                                                          |
-| ----------- | ------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| idField     | \_id                | string    | set id field name of the model                                                                                                                       |
-| route       | modelname           | string    | set base route for crud endpoints                                                                                                                    |
-| ref         | null                | object    | set reference to another model and display field from another model in the place reference id. ex: ref :{ creator: { model: User, field: "name" } }, |
-| unsetAdd    | false               | boolean   | set true to disable add on model                                                                                                                     |
-| unsetEdit   | false               | boolean   | set true to disable edit on model                                                                                                                    |
-| unsetDelete | false               | boolean   | set true to disable delete on model                                                                                                                  |
-| fields      | all fields in model | array     | use to select specific fields while reading ex:fields: ["name", "sem", "creator", "topics"]                                                          |
-| addFields   | fields              | array     | use to select specific fields while inserting                                                                                                        |
-| editFields  | fields              | array     | use to select specific fields while editing                                                                                                          |  |
+| name                 | default             | data type | description                                                                                                                                          |
+|----------------------|---------------------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| idField              | _id                 | string    | set id field name of the model                                                                                                                       |
+| route                | modelname           | string    | set base route for crud endpoints                                                                                                                    |
+| ref                  | null                | object    | set reference to another model and display field from another model in the place reference id. ex: ref :{ creator: { model: User, field: "name" } }, |
+| unsetAdd             | false               | boolean   | set true to disable add on model                                                                                                                     |
+| unsetEdit            | false               | boolean   | set true to disable edit on model                                                                                                                    |
+| unsetDelete          | false               | boolean   | set true to disable delete on model                                                                                                                  |
+| fields               | all fields in model | array     | use to select specific fields while reading ex:fields: ["name", "sem", "creator", "topics"]                                                          |
+| addFields            | fields              | array     | use to select specific fields while inserting                                                                                                        |
+| editFields           | fields              | array     | use to select specific fields while editing                                                                                                          |
+| callbackBeforeRead | Undefined           | function  | use to add callback function to call before reading                                                                                                  |
+| callbackBeforeDelete | Undefined           | function  | use to add callback function to call before deleting                                                                                                 |
+| callbackBeforeUpdate | Undefined           | function  | use to add callback function to call before updating                                                                                                 |
+| callbackBeforeInsert | Undefined           | function  | use to add callback function to call before inserting                                                                                                |
+| callbackAfterRead    | Undefined           | function  | use to add callback function to call after reading                                                                                                   |
+| callbackAfterDelete  | Undefined           | function  | use to add callback function to call after deleting                                                                                                  |
+| callbackAfterUpdate  | Undefined           | function  | use to add callback function to call after updating                                                                                                  |
+| callbackAfterInsert  | Undefined           | function  | use to add callback function to call after inserting                                                                                                 |
+
+## Callbacks
+
+you can add callback functions after or before every CRUD opration, you can pass callback funtions in options while creating object.
+example below show how to add call back funtions before and after read opration:
+
+```node
+const BeforeRead = () => {
+  console.log("starting to read data");
+};
+const AfterRead = (data) => {
+  console.log(data);
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  fields: ["name", "sem", "creator", "date"],
+  ref: { creator: { model: User, field: "name" } },
+  route: "Subject", //Default value model name
+  callbackBeforeRead: BeforeRead,
+  callbackAfterRead: AfterRead,
+});
+```
+
+### callbackBeforeRead
+you can pass a function in callbackBeforeRead. this function will run before reading the data. function you passed to callbackBeforeRead should not have any arguments required and does not need to return anything.
+
+```node
+const BeforeRead = () => {
+  console.log("starting to read data");
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeRead: BeforeRead,
+});
+```
+callbackBeforeRead does not need to return anything but however if you want to stop reading in callbackBeforeRead you can return a error message and then node-easy-crud will not read and return data
+
+```node
+const BeforeRead = () => {
+  console.log("starting to read data");
+  return { errorFromCallback: "you can not read this data" };
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeRead: BeforeRead,
+});
+```
+if you return errorFromCallback in callbackBeforeRead node-easy-crud will not read data and return the error in responce as following:
+```
+{ error: errorFromCallback }
+```
+
+### callbackBeforeDelete
+you can pass a function in callbackBeforeDelete. this function will run before deleting a document from collection. function you passed to callbackBeforeDelete will recive request body containing id of document to be delated and does need to return reqest body.
+
+```node
+const BeforeDelete = (body) => {
+  console.log("deleting row with id:"+body.id);
+  return body //returning body is required
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeDelete: BeforeDelete,
+});
+```
+
+### callbackBeforeUpdate
+you can pass a function in callbackBeforeUpdate. this function will run before updating a document from collection. function you passed to callbackBeforeUpdate will recive request body containing document to be updated and does need to return reqest body.
+
+```node
+const BeforeUpdate = (body) => {
+  console.log("updating row with id:"+body.id);
+  body.name=body.name.toUpperCase(); //changing the name to uppercase just for example
+  return body //returning body is required
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeUpdate: BeforeUpdate,
+});
+```
+
+### callbackBeforeInsert
+you can pass a function in callbackBeforeInsert. this function will run before inserting a document to collection. function you passed to callbackBeforeInsert will recive request body containing document to be added and does need to return reqest body.
+
+```node
+const BeforeInsert = (body) => {
+  console.log("inserting new row");
+  body.name=body.name.toUpperCase(); //changing the name to uppercase just for example
+  return body //returning body is required
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeInsert: BeforeInsert,
+});
+```
+
+### callbackAfterRead
+you can pass a function in callbackAfterRead. this function will run after reading the data. function you passed to callbackAfterRead will recive data read form the given collection and does not need to return anything.
+
+```node
+const AfterRead = (data) => {
+  console.log(data);
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackAfterRead: AfterRead,
+});
+```
+
