@@ -2,7 +2,10 @@
 
 This package is ment to make creating CRUD application for your node express mongo environment easy. Light Weight with **Zero Dependency**
 
-It will Create API endpoints for Adding, Reading, Updating, Deleting form given mongoDB collection. you just simply have to provide a mongoose model to the constructor. Also provide a form structure for frontend so that one can create a edit or add action forms easliy
+It will Create API endpoints for Adding, Reading, Updating, Deleting form given mongoDB collection. you just simply have to provide a mongoose model to the constructor. It also provides form structure for frontend so that one can create a edit or add action forms easliy
+
+a basic React component pacakge [react-node-easy-crud](https://www.npmjs.com/package/react-node-easy-crud) is created to make quick curd UI for **node-easy-crud**.
+*I need help for creating a front end packages for Anguler, Vui, and React which will run greate with **node-easy-crud***.
 
 ## Installation
 
@@ -223,8 +226,36 @@ new CURD(Subject, router, {
 });
 ```
 
+### errorFromCallback
+To stop insert,update or delete opration in before call back, add errorFromCallback to body object and return it. then node-easy-crud will not perfore opration and only send error in responce 
+
+```node
+const BeforeDelete = (body) => {
+  body.errorFromCallback = "you dont have permission to delete this object";
+  return body;
+};
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeDelete: BeforeDelete,
+});
+```
+
+### messageFromCallback
+to add custome success message add messageFromCallback to body before returning it in any callbackBefore other than callbackBeforeRead.
+
+```node
+const BeforeDelete = (body) => {
+  body.messageFromCallback = "Just Trashed subject with id:" + body.id;
+  return body;
+};
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackBeforeDelete: BeforeDelete,
+});
+```
+
 ### callbackAfterRead
-you can pass a function in callbackAfterRead. this function will run after reading the data. function you passed to callbackAfterRead will recive data read form the given collection and does not need to return anything.
+you can pass a function in callbackAfterRead. this function will run after reading the data. function you passed to callbackAfterRead will recive data read form the given collection.
 
 ```node
 const AfterRead = (data) => {
@@ -237,3 +268,49 @@ new CURD(Subject, router, {
 });
 ```
 
+### callbackAfterDelete
+you can pass a function in callbackAfterDelete. this function will run after deleting a document. function you passed to callbackAfterDelete will recive object return by mongoose after deleting the document.
+
+```node
+const AfterDelete = (deleted) => {
+  console.log(deleted);
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackAfterDelete: AfterDelete,
+});
+```
+
+### callbackAfterUpdate
+you can pass a function in callbackAfterUpdate. this function will run after updating a document. function you passed to callbackAfterUpdate will recive updated document as a argument.
+
+```node
+const AfterUpdate = (updatedRow) => {
+  console.log(updatedRow);
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackAfterUpdate: AfterUpdate,
+});
+```
+
+### callbackAfterInsert
+you can pass a function in callbackAfterInsert. this function will run after inserting new document. function you passed to callbackAfterInsert will recive new document as a argument.
+
+```node
+const AfterInsert = (newRow) => {
+  console.log(newRow);
+};
+
+//New CRUD(Model,Router,Options)
+new CURD(Subject, router, {
+  callbackAfterInsert: AfterInsert,
+});
+```
+**In case of any query or suggetions to improve this package contact me**
+
+*Email me: [shashank23padwal@live.com](mailto:shashank23padwal@live.com?subject=[NPM]%20Node-Easy-Crud%20contact)*
+
+*linkedIn: [Shashank Padwal](https://www.linkedin.com/in/shashankpadwal/)*
