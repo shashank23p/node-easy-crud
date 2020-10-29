@@ -13,10 +13,12 @@ class NodeEasyCurd {
     this.edit = config.unsetEdit ? false : true;
     this.del = config.unsetDelete ? false : true;
     //before call backs
+    this.callbackBeforeRead = config.callbackBeforeRead;
     this.callbackBeforeDelete = config.callbackBeforeDelete;
     this.callbackBeforeUpdate = config.callbackBeforeUpdate;
     this.callbackBeforeInsert = config.callbackBeforeInsert;
     //after call backs
+    this.callbackAfterRead = config.callbackAfterRead;
     this.callbackAfterDelete = config.callbackAfterDelete;
     this.callbackAfterUpdate = config.callbackAfterUpdate;
     this.callbackAfterInsert = config.callbackAfterInsert;
@@ -34,6 +36,10 @@ class NodeEasyCurd {
     //route to read data
     router.get(this.baseURL, async (req, res) => {
       try {
+        //run before callback
+        if (this.callbackBeforeRead) {
+          this.callbackBeforeRead();
+        }
         let tableData = await this.model
           .find()
           .select(this.fields)
@@ -55,6 +61,9 @@ class NodeEasyCurd {
           idField: this.idField,
           title: model.modelName,
         });
+        if (this.callbackAfterRead) {
+          this.callbackAfterRead(tableData);
+        }
       } catch (error) {
         res.json({ error: error.message });
       }
@@ -85,8 +94,12 @@ class NodeEasyCurd {
             //run before callback
             if (this.callbackBeforeUpdate) {
               req.body = this.callbackBeforeUpdate(req.body);
+              if (!req.body)
+                return res.json({
+                  error: "callbackBeforeUpdate must return a reqest body",
+                });
               if (req.body.errorFromCallback)
-                return res.json({ error: errorFromCallback });
+                return res.json({ error: req.body.errorFromCallback });
             }
             const fields = this.editFields ? this.editFields : this.fields;
             const validate = await this.validateUpdate(fields, req.body);
@@ -139,8 +152,12 @@ class NodeEasyCurd {
             //run before callback
             if (this.callbackBeforeInsert) {
               req.body = this.callbackBeforeInsert(req.body);
+              if (!req.body)
+                return res.json({
+                  error: "callbackBeforeInsert must return a reqest body",
+                });
               if (req.body.errorFromCallback)
-                return res.json({ error: errorFromCallback });
+                return res.json({ error: req.body.errorFromCallback });
             }
             const fields = this.addFields ? this.addFields : this.fields;
             const validate = await this.validateUpdate(fields, req.body);
@@ -173,8 +190,12 @@ class NodeEasyCurd {
             //run before callback
             if (this.callbackBeforeDelete) {
               req.body = this.callbackBeforeDelete(req.body);
+              if (!req.body)
+                return res.json({
+                  error: "callbackBeforeDelete must return a reqest body",
+                });
               if (req.body.errorFromCallback)
-                return res.json({ error: errorFromCallback });
+                return res.json({ error: req.body.errorFromCallback });
             }
             const deleted = await this.model.deleteOne({
               [this.idField]: req.body.id,
