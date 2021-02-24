@@ -1,7 +1,30 @@
+import type { Model, Document } from "mongoose";
+import type { Router, Request, Response, NextFunction } from "express";
 class NodeEasyCurd {
+  private idField: string;
+  private ref: any;
+  private baseURL: string;
+  private fields: string[];
+  private editFields: string[];
+  private addFields: string[];
+  private add: boolean;
+  private edit: boolean;
+  private del: boolean;
+  private callbackBeforeRead: () => void | { errorFromCallback: string };
+  private callbackBeforeDelete: (body: any) => any;
+  private callbackBeforeUpdate: (body: any) => any;
+  private callbackBeforeInsert: (body: any) => any;
+  private callbackAfterRead: (data: any) => any;
+  private callbackAfterDelete: (data: any) => any;
+  private callbackAfterUpdate: (data: any) => any;
+  private callbackAfterInsert: (data: any) => any;
+  private populateArray: { path: string; select: any }[];
   //crearting global Variables and route for CRUD
-  constructor(model, router, config = {}) {
-    this.model = model;
+  constructor(
+    private model: Model<Document, {}>,
+    router: Router,
+    config: any = {}
+  ) {
     //setting options
     this.idField = config.idField ? config.idField : "_id"; //set primery key field
     this.baseURL = config.route ? "/" + config.route : "/" + model.modelName;
@@ -43,7 +66,7 @@ class NodeEasyCurd {
             if (callBackData.errorFromCallback)
               return res.json({ error: callBackData.errorFromCallback });
         }
-        let tableData = await this.model
+        let tableData: any = await this.model
           .find()
           .select(this.fields)
           .populate(this.populateArray)
@@ -77,10 +100,7 @@ class NodeEasyCurd {
       router.get(this.baseURL + "/edit-form/:id", async (req, res) => {
         try {
           //function which returns edit form structure
-          const editFormStrc = await this.createEditObject(
-            req.params.id,
-            config
-          );
+          const editFormStrc = await this.createEditObject(req.params.id);
           // await new Promise((resolve) => setTimeout(resolve, 5000));
           res.json({ formStrc: editFormStrc, id: req.params.id });
         } catch (error) {
@@ -220,7 +240,7 @@ class NodeEasyCurd {
     }
   }
 
-  async validateUpdate(fields, data) {
+  async validateUpdate(fields: string[], data: any) {
     let formStrc = await this.getFromStruc(fields);
     for (let i = 0; i < formStrc.length; i++) {
       if (formStrc[i].required === true && !data[formStrc[i].name]) {
@@ -233,10 +253,10 @@ class NodeEasyCurd {
 
   //function to create edit form structure object
   //args id:Id of the document
-  async createEditObject(id) {
-    let data = await this.model.findOne({ [this.idField]: id }).lean();
+  async createEditObject(id: string) {
+    let data: any = await this.model.findOne({ [this.idField]: id }).lean();
     const fields = this.editFields ? this.editFields : this.fields;
-    let editFormStrc = await this.getFromStruc(fields, data);
+    let editFormStrc: any = await this.getFromStruc(fields, data);
 
     editFormStrc = [
       {
@@ -253,8 +273,8 @@ class NodeEasyCurd {
     return editFormStrc;
   }
 
-  async getFromStruc(fields, data = {}) {
-    const schema = this.model.schema.paths; //all keys available in current docs schema
+  async getFromStruc(fields: string[], data: any = {}) {
+    const schema: any = this.model.schema.paths; //all keys available in current docs schema
     let formStrc = [];
     //loop thorugh all keys in schema
     for (var key of Object.keys(schema)) {
@@ -269,7 +289,7 @@ class NodeEasyCurd {
           type = "date";
           data[key] = this.convertDate(data[key]);
         }
-        let struc = {
+        let struc: any = {
           value: data[key],
           name: key,
           tag: tag,
@@ -283,8 +303,8 @@ class NodeEasyCurd {
           let allValues = await this.ref[key].model
             .find({})
             .select({ [this.idField]: 1, [this.ref[key].field]: 1 });
-          let options = [];
-          allValues.forEach((row) => {
+          let options: any[] = [];
+          allValues.forEach((row: any) => {
             options.push({
               value: row[this.idField],
               text: row[this.ref[key].field],
@@ -298,11 +318,11 @@ class NodeEasyCurd {
     return formStrc;
   }
 
-  convertDate(d) {
+  convertDate(d: string) {
     const date = new Date(d);
     let year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    let dt = date.getDate();
+    let month: number | string = date.getMonth() + 1;
+    let dt: number | string = date.getDate();
 
     if (dt < 10) {
       dt = "0" + dt;
@@ -314,7 +334,7 @@ class NodeEasyCurd {
   }
 
   //parseing body to avoid using Dependencies
-  parseBody(req, res, next) {
+  parseBody(req: Request, res: Response, next: NextFunction) {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk.toString(); // convert Buffer to string

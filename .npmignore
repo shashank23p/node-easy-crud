@@ -1,2 +1,5 @@
-/test
 .DS_Store
+/src
+tsconfig.json
+/node_modules
+/example

@@ -1,3 +1,6 @@
 /test
 /node_modules
 .DS_Store
+/lib
+/example/.env
+/example/node_modules
