@@ -2,6 +2,8 @@
 
 This package is ment to make creating CRUD application for your node express mongo environment easy. Light Weight with **Zero Dependency**
 
+now build with **TypeScript** since version **1.0.4**
+
 It will Create API endpoints for Adding, Reading, Updating, Deleting form given mongoDB collection. you just simply have to provide a mongoose model to the constructor. It also provides form structure for frontend so that one can create a edit or add action forms easliy
 
 a basic React component pacakge [react-node-easy-crud](https://www.npmjs.com/package/react-node-easy-crud) is created to make quick curd UI for **node-easy-crud**.
